@@ -31,13 +31,19 @@ class Blockchain(object):
         """
 
         block = {
-            # TODO
+            'index': len(self.chain) + 1,
+            'timestamp': time(),
+            'transactions': self.current_transactions,
+            'proof': proof,
+            'previous_hash': previous_hash
         }
 
         # Reset the current list of transactions
-        # Append the chain to the block
+        self.current_transactions = []
+        # Append the block to the chain
+        self.chain.append(block)
         # Return the new block
-        pass
+        return block
 
     def hash(block):
         """
@@ -84,7 +90,7 @@ class Blockchain(object):
         pass
         # return proof
 
-    @staticmethod
+    @staticmethod # belongs to the class not the object. Why is this done here?
     def valid_proof(block_string, proof):
         """
         Validates the Proof:  Does hash(block_string, proof) contain 3
@@ -119,6 +125,7 @@ def mine():
 
     response = {
         # TODO: Send a JSON response with the new block
+        'test': 'hello there'
     }
 
     return jsonify(response), 200
@@ -128,10 +135,11 @@ def mine():
 def full_chain():
     response = {
         # TODO: Return the chain and its current length
+        'test': 'chain chain chain'
     }
     return jsonify(response), 200
 
 
 # Run the program on port 5000
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)
