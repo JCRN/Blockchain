@@ -100,12 +100,7 @@ class Blockchain(object):
         guess = f'{block_string}{proof}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
         
-        if guess_hash[:6] == '000000':
-            return True
-        else:
-            return False
-        
-
+        return guess_hash[:6] == '000000'
 
 # Instantiate our Node
 app = Flask(__name__)
@@ -117,23 +112,44 @@ node_identifier = str(uuid4()).replace('-', '')
 blockchain = Blockchain()
 
 
-@app.route('/mine', methods=['GET', 'POST'])
+@app.route('/mine', methods=['POST'])
 def mine():
     # Receive and validate or reject a new proof sent by a client
-    error = None
-    if request.method == 'POST':
-        data = request.get_json()
-        if data.proof and data.id:
-                        
-    # Forge the new Block by adding it to the chain with the proof
-    previous_hash = blockchain.hash(blockchain.last_block)
-    block = blockchain.new_block(proof, previous_hash)
-    response = {
-        # TODO: Send a JSON response with the new block
-        'new_block': block
-    }
+    
+    # Response
+    message = None
+    response = { 'message': message }
+    res_code = 0
+    
+    # Get data from POST
+    data = request.get_json()
+    
+    # Check for both proof and id
+    if data['proof'] and data['id']:
+        proof = data['proof']
+        block_string = json.dumps(data)
+        
+        # Validate the proof
+        valid = blockchain.valid_proof(block_string, proof)
+        if valid:
+            # Forge the new Block by adding it to the chain with the proof
+            previous_hash = blockchain.hash(blockchain.last_block)
+            block = blockchain.new_block(proof, previous_hash)
+            message = 'New Block Forged'
+            res_code = 200
+        else:
+            message = 'Your proof is invalid. Keep mining!' 
+            res_code = 400         
+    else:
+        res_code = 400
+        if data['proof']:
+            message = 'ID is required.'
+        elif data['id']:
+            message = 'Proof is required.'
+        else:
+            message = 'ID and Proof are both required.'
 
-    return jsonify(response), 200
+    return jsonify(response), res_code
 
 
 @app.route('/chain', methods=['GET'])
@@ -146,7 +162,7 @@ def full_chain():
     return jsonify(response), 200
 
 @app.route('/last_block', methods=['GET'])
-def block():
+def last_block():
     response = {
         # TODO: Return the last block in the chain
         'last_block': blockchain.last_block
