@@ -103,7 +103,6 @@ class Blockchain(object):
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:3] == "000"
 
-
 # Instantiate our Node
 app = Flask(__name__)
 
@@ -114,7 +113,6 @@ node_identifier = str(uuid4()).replace('-', '')
 
 # Instantiate the Blockchain
 blockchain = Blockchain()
-
 
 @app.route('/mine', methods=['GET'])
 def mine():
@@ -128,7 +126,6 @@ def mine():
     }
     return jsonify(response), 200
 
-
 @app.route('/chain', methods=['GET'])
 def full_chain():
     response = {
@@ -137,7 +134,6 @@ def full_chain():
         'chain': blockchain.chain
     }
     return jsonify(response), 200
-
 
 # Run the program on port 5000
 if __name__ == '__main__':
