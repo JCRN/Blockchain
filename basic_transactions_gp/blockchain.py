@@ -96,7 +96,18 @@ class Blockchain(object):
         guess_hash = hashlib.sha256(guess).hexdigest()
         
         return guess_hash[:DIFFICULTY] == '0' * DIFFICULTY
-
+    
+    def new_transaction(self, sender, recipient, amount):
+        # :param sender: <str> Address of the Recipient
+        # :param recipient: <str> Address of the Recipient
+        # :param amount: <int> Amount
+        # :return: <int> The index of the `block` that will hold this transaction
+        self.current_transactions.append({
+            'sender': sender,
+            'recipient': recipient,            
+            'amount': amount            
+        })
+        
 # Instantiate our Node
 app = Flask(__name__)
 
@@ -106,8 +117,31 @@ node_identifier = str(uuid4()).replace('-', '')
 # Instantiate the Blockchain
 blockchain = Blockchain()
 
+@app.route('/transactions/new', methods=['POST'])
+def post_new_transaction():
+    try:
+        data = request.get_json()
+    except ValueError:
+        print('Error: Non-json response')
+        print('Response returned:')
+        print(request)
+        return 'Error'
+    
+    required = ['sender', 'recipient', 'amount']
+    if not all(k in data for k in required):
+        response = { 'message': 'Missing values'}
+        return jsonify(response), 400
+        
+    blockchain.new_transaction(data['sender'], data['recipient'], data['amount'])
+    
+    response = { 'block_index': blockchain.last_block['index'], 
+                 'block': blockchain.last_block
+    }
+    
+    return jsonify(response), 200
+    
 
-@app.route('/mine', methods=['POST'])
+@app.route('/mine', methods=['POST']) 
 def mine(): 
     # Get data from POST
     data = request.get_json()
@@ -124,8 +158,12 @@ def mine():
         if blockchain.valid_proof(block_string, data['proof']):
             # Forge the new Block by adding it to the chain with the proof
             previous_hash = blockchain.hash(blockchain.last_block)
-            block = blockchain.new_block(data['proof'], previous_hash)
-            response = { 'message': 'New Block Forged' }
+            blockchain.new_transaction('0', data['id'], 1)
+            new_block = blockchain.new_block(data['proof'], previous_hash)
+          
+            
+            response = { 'message': 'New Block Forged',
+                         'block': new_block }
             return jsonify(response), 200
         
         else:
