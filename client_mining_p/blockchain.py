@@ -5,6 +5,7 @@ from uuid import uuid4
 
 from flask import Flask, jsonify, request
 
+DIFFICULTY = 6
 
 class Blockchain(object):
     def __init__(self):
@@ -94,7 +95,7 @@ class Blockchain(object):
         guess = f'{block_string}{proof}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
         
-        return guess_hash[:6] == '000000'
+        return guess_hash[:DIFFICULTY] == '0' * DIFFICULTY
 
 # Instantiate our Node
 app = Flask(__name__)
