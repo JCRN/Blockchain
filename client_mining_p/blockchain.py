@@ -117,13 +117,13 @@ def mine():
         return jsonify(response), 406
     
     else:        
-        proof = data['proof']
-        block_string = json.dumps(data['last_block'])
+        block_string = json.dumps(blockchain.last_block, sort_keys=True)
         
         # Validate the proof
-        if blockchain.valid_proof(block_string, proof):
+        if blockchain.valid_proof(block_string, data['proof']):
+            # Forge the new Block by adding it to the chain with the proof
             previous_hash = blockchain.hash(blockchain.last_block)
-            block = blockchain.new_block(proof, previous_hash)
+            block = blockchain.new_block(data['proof'], previous_hash)
             response = { 'message': 'New Block Forged' }
             return jsonify(response), 200
         
