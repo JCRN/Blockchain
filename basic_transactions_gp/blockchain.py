@@ -4,6 +4,7 @@ from time import time
 from uuid import uuid4
 
 from flask import Flask, jsonify, request
+from flask_cors import CORS, cross_origin
 
 DIFFICULTY = 6
 
@@ -111,6 +112,7 @@ class Blockchain(object):
 # Instantiate our Node
 app = Flask(__name__)
 
+
 # Generate a globally unique address for this node
 node_identifier = str(uuid4()).replace('-', '')
 
@@ -118,6 +120,7 @@ node_identifier = str(uuid4()).replace('-', '')
 blockchain = Blockchain()
 
 @app.route('/transactions/new', methods=['POST'])
+@cross_origin(origin='*')
 def post_new_transaction():
     try:
         data = request.get_json()
@@ -172,6 +175,7 @@ def mine():
         
 
 @app.route('/chain', methods=['GET'])
+@cross_origin(origin='*')
 def full_chain():
     response = {
         'length': len(blockchain.chain),
